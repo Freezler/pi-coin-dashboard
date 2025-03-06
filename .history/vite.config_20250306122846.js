@@ -4,8 +4,5 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svelte()],
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-  }
+  base: '/pi-coin-dashboard/', // Add this line for GitHub Pages deployment
 })
