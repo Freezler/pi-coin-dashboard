@@ -2,13 +2,11 @@
   import Chart from "chart.js/auto";
   import { onMount } from "svelte";
   import MarketStats from "./MarketStats.svelte";
-  import NewsCarousel from "./NewsCarousel.svelte";
   import TransactionsTable from "./TransactionsTable.svelte";
 
   export let currentDate;
   export let currentTime;
-  export let piPrice; // Export piPrice to receive it as a prop
-  export let change24h; // Export change24h to receive it as a prop
+  let piPrice = 0;
   let chart;
   let priceHistory = []; // Array voor historische data
   let selectedTimeRange = "1h"; // Standaard 1 uur
@@ -72,9 +70,7 @@
   }
 
   onMount(async () => {
-    if (!piPrice) {
-      await fetchPiPrice();
-    }
+    await fetchPiPrice();
 
     // Voeg wat dummy historische data toe voor een zichtbare lijn
     const now = new Date();
@@ -236,7 +232,10 @@
     <!-- News Section -->
     <div class="bg-pi-darker rounded-xl p-6 shadow-lg" id="news">
       <h2 class="text-xl font-bold mb-4">Latest News</h2>
-      <NewsCarousel />
+      {#each newsItems.filter((item) => item.includes("PI")) as news}
+        <!-- Filter voor PI nieuws -->
+        <div class="news-item">{news}</div>
+      {/each}
     </div>
 
     <!-- Transactions Section -->

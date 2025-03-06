@@ -12,13 +12,13 @@ const API_URL = 'https://api.coingecko.com/api/v3';
 export const fetchCoinData = async () => {
   try {
     const response = await fetch(`${API_URL}/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`);
-
+    
     if (!response.ok) {
       throw new Error('Failed to fetch coin data');
     }
-
+    
     const data = await response.json();
-
+    
     // Format data to simulate Pi Coin
     return {
       name: 'Pi Coin',
@@ -43,13 +43,13 @@ export const fetchCoinData = async () => {
 export const fetchHistoricalData = async (days = 7) => {
   try {
     const response = await fetch(`${API_URL}/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`);
-
+    
     if (!response.ok) {
       throw new Error('Failed to fetch historical data');
     }
-
+    
     const data = await response.json();
-
+    
     // Format prices for chart
     return data.prices.map(price => ({
       timestamp: price[0],
@@ -67,14 +67,14 @@ export const fetchHistoricalData = async (days = 7) => {
  */
 export const fetchNews = async () => {
   try {
-    const response = await fetch(`${API_URL}/search/pi`);
-
+    const response = await fetch(`${API_URL}/search/trending`);
+    
     if (!response.ok) {
       throw new Error('Failed to fetch trending coins');
     }
-
+    
     const data = await response.json();
-
+    
     // Transform trending coins into news items
     return data.coins.map(coin => ({
       id: coin.item.id,
@@ -94,12 +94,12 @@ export const fetchNews = async () => {
 export const generateTransactions = (price) => {
   const transactionTypes = ['buy', 'sell'];
   const transactions = [];
-
+  
   for (let i = 0; i < 10; i++) {
     const type = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
     const amount = Math.floor(Math.random() * 100) + 1;
     const priceVariation = price * (0.95 + Math.random() * 0.1); // Price with ±5% variation
-
+    
     transactions.push({
       id: `tx-${i}`,
       type,
@@ -109,6 +109,6 @@ export const generateTransactions = (price) => {
       time: new Date(Date.now() - i * 1000 * 60 * 5).toISOString() // Every 5 minutes
     });
   }
-
+  
   return transactions;
 };

@@ -7,8 +7,7 @@
 
   export let currentDate;
   export let currentTime;
-  export let piPrice; // Export piPrice to receive it as a prop
-  export let change24h; // Export change24h to receive it as a prop
+  let piPrice = 0;
   let chart;
   let priceHistory = []; // Array voor historische data
   let selectedTimeRange = "1h"; // Standaard 1 uur
@@ -72,9 +71,7 @@
   }
 
   onMount(async () => {
-    if (!piPrice) {
-      await fetchPiPrice();
-    }
+    await fetchPiPrice();
 
     // Voeg wat dummy historische data toe voor een zichtbare lijn
     const now = new Date();
@@ -111,7 +108,7 @@
         options: {
           responsive: true,
           animation: {
-            duration: 500,
+            duration: 1000,
           },
           scales: {
             y: {

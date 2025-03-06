@@ -1,133 +1,88 @@
 <script>
-  import { onMount } from 'svelte';
-  import { fetchNews } from '../services/coinGeckoService.js';
-  
-  let newsItems = [];
-  let currentIndex = 0;
-  let loading = true;
-  
-  function nextNews() {
-    if (newsItems.length > 0) {
-      currentIndex = (currentIndex + 1) % newsItems.length;
-    }
-  }
-  
-  function prevNews() {
-    if (newsItems.length > 0) {
-      currentIndex = (currentIndex - 1 + newsItems.length) % newsItems.length;
-    }
-  }
-  
-  // Fetch news data
-  async function updateNewsData() {
-    loading = true;
-    const data = await fetchNews();
-    
-    if (data && data.length > 0) {
-      newsItems = data.map(item => ({
-        ...item,
-        source: 'CryptoNews',
-        date: new Date().toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        })
-      }));
-    } else {
-      // Fallback data if API fails
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      
-      newsItems = [
-        {
-          title: 'Pi Coin Surges to New Heights',
-          content: 'The digital currency has seen remarkable growth in the past week, with experts attributing the rise to increasing adoption and new partnerships.',
-          source: 'CryptoDashboard',
-          date: dateStr
-        },
-        {
-          title: 'Pi Network Announces Major Update',
-          content: 'The team behind Pi Coin has unveiled plans for a significant protocol upgrade that aims to improve scalability and transaction throughput.',
-          source: 'BlockchainNews',
-          date: dateStr
-        },
-        {
-          title: 'Institutional Interest in Pi Coin Growing',
-          content: 'Several major investment firms have begun adding Pi Coin to their digital asset portfolios, signaling growing confidence in the cryptocurrency.',
-          source: 'CryptoInsider',
-          date: dateStr
-        }
-      ];
-    }
-    
-    loading = false;
-  }
-  
-  onMount(() => {
-    updateNewsData();
-    
-    // Auto-rotate news items every 8 seconds
-    const rotateInterval = setInterval(() => {
-      nextNews();
-    }, 8000);
-    
-    // Refresh news data every 5 minutes
-    const refreshInterval = setInterval(() => {
-      updateNewsData();
-    }, 300000);
-    
-    return () => {
-      clearInterval(rotateInterval);
-      clearInterval(refreshInterval);
-    };
-  });
+  // News data for the dashboard
+  export let news = [
+    {
+      title: "Pi Network Announces New Exchange Listings",
+      description:
+        "Pi Coin is set to be listed on three major cryptocurrency exchanges next month, potentially increasing accessibility and liquidity for traders.",
+      url: "https://cryptonews.net/news/pi-network-announces-new-exchange-listings-2025-03-07/",
+    },
+    {
+      title: "Pi Core Team Reveals Roadmap for Q2 2025",
+      description:
+        "The Pi Network development team has unveiled an ambitious roadmap for Q2 2025, including smart contract functionality and cross-chain bridges.",
+      url: "https://blockchaininsider.net/pi-core-team-reveals-roadmap-for-q2-2025/",
+    },
+    {
+      title: "Pi Ecosystem Growing: Over 250 dApps in Development",
+      description:
+        "The Pi Network ecosystem continues to expand with more than 250 decentralized applications currently in various stages of development.",
+      url: "https://dappradar.com/blog/pi-ecosystem-growing-over-250-dapps-in-development/",
+    },
+    {
+      title: "Pi Foundation Launches $15M Developer Grant Program",
+      description:
+        "The Pi Foundation has announced a $15 million grant program aimed at supporting developers building applications on the Pi Network.",
+      url: "https://cryptover.net/pi-foundation-launches-15m-developer-grant-program/",
+    },
+    {
+      title: "Pi Network Surpasses 55 Million Active Users Globally",
+      description:
+        "In a significant milestone, the Pi Network has reported that it now has over 55 million active users worldwide, making it one of the fastest-growing cryptocurrency projects.",
+      url: "https://techtoday.news/pi-network-surpasses-55-million-active-users-globally/",
+    },
+    {
+      title: "Pi Coin Sees Record Trading Volume",
+      description:
+        "Pi Coin has seen a significant increase in trading volume over the past week, with many investors buying up the cryptocurrency in anticipation of its upcoming exchange listings.",
+      url: "https://cryptoslate.com/pi-coin-sees-record-trading-volume/",
+    },
+  ];
+
+  // Filter news items to include only PI-related articles
+  $: news = news.filter(
+    (item) =>
+      item.title.toLowerCase().includes("pi") ||
+      item.description.toLowerCase().includes("pi"),
+  );
 </script>
 
-<div class="relative">
-  <div class="overflow-hidden rounded-lg min-h-[200px]">
-    {#if loading}
-      <div class="min-h-[200px] p-4 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
-        <p class="text-pi-teal">Loading news...</p>
-      </div>
-    {:else}
-      {#each newsItems as news, i}
-        <div class="min-h-[200px] p-4 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg {i === currentIndex ? 'block' : 'hidden'}">
-          <h3 class="text-lg font-semibold text-pi-teal mb-2">{news.title}</h3>
-          <p class="text-gray-300 text-sm mb-3">{news.content}</p>
-          <div class="flex justify-between items-center text-xs text-gray-400">
-            <span>{news.source}</span>
-            <span>{news.date}</span>
-          </div>
-        </div>
-      {/each}
-    {/if}
-  </div>
-  
-  <div class="flex justify-between mt-3">
-    <button 
-      on:click={prevNews} 
-      class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full"
-      aria-label="Previous news">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
-    <div class="flex space-x-1">
-      {#each newsItems as _, i}
-        <span class="w-2 h-2 rounded-full {i === currentIndex ? 'bg-pi-teal' : 'bg-gray-600'}"></span>
-      {/each}
+<style>
+  body {
+    background-color: #121212; /* Dark background */
+    color: #ffffff; /* Light text color */
+  }
+
+  .carousel {
+    max-height: 400px; /* Limit height to fit the screen */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #444; /* Darker border */
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #1e1e1e; /* Darker carousel background */
+  }
+
+  .carousel-item {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #333; /* Darker item border */
+    border-radius: 5px;
+    background-color: #2a2a2a; /* Dark item background */
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s;
+  }
+
+  .carousel-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+  }
+</style>
+
+<div class="carousel">
+  {#each news as article}
+    <div class="carousel-item">
+      <a href={article.url} target="_blank">{article.title}</a>
+      <p>{article.description}</p>
     </div>
-    <button 
-      on:click={nextNews} 
-      class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full"
-      aria-label="Next news">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  </div>
+  {/each}
 </div>

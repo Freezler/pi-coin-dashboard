@@ -1,47 +1,54 @@
-// Current Pi price
-let piPrice = 14.82;
-
-// 24h change percentage
-let change24h = 3.75;
+// Import market data from CoinMarketCap API
+import marketData from '../services/coinMarketCapService';
 
 // Function to get current Pi price
 export function getPiPrice() {
-  return piPrice;
+  if (marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD) {
+    return marketData.data.quote.USD.price;
+  } else {
+    console.error('Market data not available');
+    return null; // or a default value
+  }
 }
 
 // Function to get 24h change
 export function getChange24h() {
-  return change24h;
+  if (marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD) {
+    return marketData.data.quote.USD.percent_change_24h;
+  } else {
+    console.error('Market data not available');
+    return null; // or a default value
+  }
 }
 
 // Market data for dashboard
-export const marketData = [
+export const marketDataFormatted = [
   {
     label: '24h Volume',
-    value: '$238.5M',
-    change: 5.2
+    value: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? `$${marketData.data.quote.USD.volume_24h.toLocaleString()}` : 'N/A',
+    change: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? marketData.data.quote.USD.percent_change_24h : 'N/A'
   },
   {
     label: 'Market Cap',
-    value: '$7.91B',
-    change: 3.8
+    value: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? `$${marketData.data.quote.USD.market_cap.toLocaleString()}` : 'N/A',
+    change: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? marketData.data.quote.USD.percent_change_24h : 'N/A'
   },
   {
     label: 'Circulating Supply',
-    value: '533.7M π',
+    value: marketData && marketData.data ? `${marketData.data.circulating_supply.toLocaleString()} π` : 'N/A',
   },
   {
     label: 'All-Time High',
-    value: '$21.45',
-    change: -30.9
+    value: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? `$${marketData.data.quote.USD.percent_change_1y}` : 'N/A',
+    change: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? marketData.data.quote.USD.percent_change_1y : 'N/A'
   },
   {
     label: '24h Low / High',
-    value: '$14.21 / $15.03',
+    value: marketData && marketData.data && marketData.data.quote && marketData.data.quote.USD ? `$${marketData.data.quote.USD.low_24h} / $${marketData.data.quote.USD.high_24h}` : 'N/A',
   },
   {
     label: 'Sentiment',
-    value: 'Bullish',
-    change: 12.5
+    value: marketData && marketData.data ? (marketData.data.sentiment > 0 ? 'Bullish' : 'Bearish') : 'N/A',
+    change: marketData && marketData.data ? marketData.data.sentiment : 'N/A'
   }
 ];
