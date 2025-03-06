@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import Navbar from './components/Navbar.svelte';
   import Dashboard from './components/Dashboard.svelte';
-  import { fetchCoinData } from './services/coinGeckoService.js';
   
   let currentDate = new Date().toLocaleDateString('en-US', {
     month: 'long',
@@ -17,13 +16,20 @@
   let piPrice = 0;
   let change24h = 0;
   let loading = true;
-  
+  let data;
+
   // Update price and market data
   async function updatePriceData() {
-    const data = await fetchCoinData();
-    if (data) {
-      piPrice = data.current_price;
-      change24h = data.price_change_percentage_24h;
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd');
+    if (response.ok) {
+      const result = await response.json();
+      data = result['pi-network'];
+      piPrice = data.usd;
+      // Note: The CoinGecko API does not provide 24h price change percentage for Pi Network
+      // You may need to use a different API or calculate it manually
+      change24h = 0;
+    } else {
+      console.error('Failed to fetch data');
     }
     loading = false;
   }
@@ -45,9 +51,13 @@
       });
     }, 60000);
     
+    // Update data every 5 minutes
+    const dataTimer = setInterval(updatePriceData, 5 * 60 * 1000);
+    
     return () => {
       clearInterval(timeTimer);
       clearInterval(priceTimer);
+      clearInterval(dataTimer);
     };
   });
 </script>
