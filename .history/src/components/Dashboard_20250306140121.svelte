@@ -9,7 +9,6 @@
   export let currentTime;
   let piPrice = 0;
   let chart;
-  let priceHistory = []; // Array voor historische data
 
   async function fetchPiPrice() {
     try {
@@ -18,16 +17,6 @@
       );
       const data = await response.json();
       piPrice = data["pi-network"].usd;
-
-      // Voeg nieuwe prijs toe aan geschiedenis
-      priceHistory.push({
-        time: new Date(),
-        price: piPrice,
-      });
-
-      // Behoud alleen data van laatste uur
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      priceHistory = priceHistory.filter((item) => item.time > oneHourAgo);
     } catch (error) {
       console.error("Error fetching Pi price:", error);
     }
@@ -36,47 +25,29 @@
   onMount(async () => {
     await fetchPiPrice();
 
-    // Voeg wat dummy historische data toe voor een zichtbare lijn
-    const now = new Date();
-    for (let i = 10; i > 0; i--) {
-      const time = new Date(now.getTime() - i * 6 * 60000); // 6 minuten terug per punt
-      // Genereer een willekeurige prijs rond de huidige prijs (voor demo)
-      const randomPrice = piPrice * (0.95 + Math.random() * 0.1);
-      priceHistory.push({
-        time: time,
-        price: randomPrice,
-      });
-    }
-
     const ctx = document.getElementById("piChart");
     if (ctx instanceof HTMLCanvasElement) {
       chart = new Chart(ctx, {
         type: "line",
         data: {
-          labels: priceHistory.map((item) => item.time.toLocaleTimeString()),
+          labels: [new Date().toLocaleTimeString()], // Begin met huidige tijd
           datasets: [
             {
               label: "Pi Price (USD)",
-              data: priceHistory.map((item) => item.price),
+              data: [piPrice], // Begin met huidige prijs
               borderColor: "#4ECDC4",
-              borderWidth: 3,
               tension: 0.4,
-              fill: false,
-              pointRadius: 3,
-              pointBackgroundColor: "#4ECDC4",
+              fill: false, // Voeg dit toe voor een duidelijkere lijn
             },
           ],
         },
         options: {
           responsive: true,
-          animation: {
-            duration: 1000,
-          },
           scales: {
             y: {
               beginAtZero: false,
               grid: {
-                color: "rgba(138, 156, 170, 0.1)",
+                color: "rgba(138, 156, 170, 0.1)", // Voeg grid lijnen toe
               },
               ticks: {
                 color: "#8a9caa",
@@ -88,26 +59,31 @@
               },
               ticks: {
                 color: "#8a9caa",
-                maxTicksLimit: 6,
               },
             },
           },
         },
       });
 
-      // Update vaker voor een meer realtime ervaring
+      // Update elke minuut
       setInterval(async () => {
         await fetchPiPrice();
         updateChart();
-      }, 10000); // Update elke 10 seconden
+      }, 60000);
     }
   });
 
   function updateChart() {
-    chart.data.labels = priceHistory.map((item) =>
-      item.time.toLocaleTimeString(),
-    );
-    chart.data.datasets[0].data = priceHistory.map((item) => item.price);
+    const now = new Date().toLocaleTimeString();
+    chart.data.labels.push(now);
+    chart.data.datasets[0].data.push(piPrice);
+
+    // Keep only last 10 data points
+    if (chart.data.labels.length > 10) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+
     chart.update();
   }
 </script>

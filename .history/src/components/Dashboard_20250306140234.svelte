@@ -36,42 +36,24 @@
   onMount(async () => {
     await fetchPiPrice();
 
-    // Voeg wat dummy historische data toe voor een zichtbare lijn
-    const now = new Date();
-    for (let i = 10; i > 0; i--) {
-      const time = new Date(now.getTime() - i * 6 * 60000); // 6 minuten terug per punt
-      // Genereer een willekeurige prijs rond de huidige prijs (voor demo)
-      const randomPrice = piPrice * (0.95 + Math.random() * 0.1);
-      priceHistory.push({
-        time: time,
-        price: randomPrice,
-      });
-    }
-
     const ctx = document.getElementById("piChart");
     if (ctx instanceof HTMLCanvasElement) {
       chart = new Chart(ctx, {
         type: "line",
         data: {
-          labels: priceHistory.map((item) => item.time.toLocaleTimeString()),
+          labels: [new Date().toLocaleTimeString()],
           datasets: [
             {
               label: "Pi Price (USD)",
-              data: priceHistory.map((item) => item.price),
+              data: [piPrice],
               borderColor: "#4ECDC4",
-              borderWidth: 3,
               tension: 0.4,
               fill: false,
-              pointRadius: 3,
-              pointBackgroundColor: "#4ECDC4",
             },
           ],
         },
         options: {
           responsive: true,
-          animation: {
-            duration: 1000,
-          },
           scales: {
             y: {
               beginAtZero: false,
@@ -88,18 +70,18 @@
               },
               ticks: {
                 color: "#8a9caa",
-                maxTicksLimit: 6,
+                maxTicksLimit: 6, // Toon maximaal 6 tijdlabels
               },
             },
           },
         },
       });
 
-      // Update vaker voor een meer realtime ervaring
+      // Update elke minuut
       setInterval(async () => {
         await fetchPiPrice();
         updateChart();
-      }, 10000); // Update elke 10 seconden
+      }, 60000);
     }
   });
 

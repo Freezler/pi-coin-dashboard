@@ -1,55 +1,53 @@
 <script>
-  import { onMount } from "svelte";
-  import { fetchCoinData } from "../services/coinGeckoService.js";
-
+  import { onMount } from 'svelte';
+  import { fetchCoinData } from '../services/coinGeckoService.js';
+  
   let marketData = [];
   let loading = true;
-
-  let news = [];
-
+  
   // Format large numbers with commas
   function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
-
+  
   // Update market data with real data
   async function updateMarketData() {
     loading = true;
     const data = await fetchCoinData();
-
+    
     if (data) {
       marketData = [
         {
           label: "Market Cap",
-          value: `$${formatNumber(data.market_cap)}`,
+          value: `$${formatNumber(data.market_cap)}`
         },
         {
           label: "24h Volume",
-          value: `$${formatNumber(data.total_volume)}`,
+          value: `$${formatNumber(data.total_volume)}`
         },
         {
           label: "Price",
           value: `$${data.current_price}`,
-          change: parseFloat(data.price_change_percentage_24h),
+          change: parseFloat(data.price_change_percentage_24h)
         },
         {
           label: "Circulating Supply",
-          value: `${formatNumber(data.circulating_supply)} PI`,
+          value: `${formatNumber(data.circulating_supply)} PI`
         },
         {
           label: "Total Supply",
-          value: `${formatNumber(data.total_supply)} PI`,
+          value: `${formatNumber(data.total_supply)} PI`
         },
         {
           label: "Updated",
-          value: new Date().toLocaleString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
+          value: new Date().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        }
       ];
     } else {
       // Fallback data if API fails
@@ -59,43 +57,28 @@
         { label: "Price", value: "$91,367.00", change: 1.51 },
         { label: "Circulating Supply", value: "1,983,298 PI" },
         { label: "Total Supply", value: "1,983,298 PI" },
-        { label: "Updated", value: "Mar 6, 2025, 12:57 PM" },
+        { label: "Updated", value: "Mar 6, 2025, 12:57 PM" }
       ];
     }
-
+    
     loading = false;
   }
-
+  
   onMount(() => {
     updateMarketData();
-
+    
     // Update market data every 60 seconds
     const interval = setInterval(updateMarketData, 60000);
-
+    
     return () => {
       clearInterval(interval);
     };
-  });
-
-  onMount(async () => {
-    try {
-      // We gebruiken een specifieke zoekquery voor Pi Network nieuws
-      const response = await fetch(
-        'https://newsapi.org/v2/everything?q="Pi+Network"+OR+"Pi+Coin"&sortBy=publishedAt&apiKey=YOUR_API_KEY',
-      );
-      const data = await response.json();
-      news = data.articles.slice(0, 5); // Alleen de laatste 5 nieuwsberichten
-    } catch (error) {
-      console.error("Error fetching news:", error);
-    }
   });
 </script>
 
 <div class="grid grid-cols-2 gap-4">
   {#if loading}
-    <div class="col-span-2 text-center text-gray-400">
-      Loading market data...
-    </div>
+    <div class="col-span-2 text-center text-gray-400">Loading market data...</div>
   {:else}
     <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg col-span-2">
       <table class="w-full">
@@ -111,11 +94,7 @@
               <td class="text-gray-400 text-sm">{item.label}</td>
               <td class="text-lg font-bold mt-1">{item.value}</td>
               {#if item.change !== undefined}
-                <td
-                  class={item.change >= 0
-                    ? "text-green-500 text-sm"
-                    : "text-red-500 text-sm"}
-                >
+                <td class={item.change >= 0 ? "text-green-500 text-sm" : "text-red-500 text-sm"}>
                   {item.change >= 0 ? "+" : ""}{item.change}%
                 </td>
               {/if}
@@ -125,23 +104,4 @@
       </table>
     </div>
   {/if}
-</div>
-
-<div class="bg-pi-darker p-4 rounded-lg">
-  <h2 class="text-xl font-bold mb-4 text-pi-teal">Latest Pi Network News</h2>
-  <div class="space-y-4">
-    {#each news as article}
-      <a
-        href={article.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="block p-3 bg-pi-dark rounded hover:bg-opacity-80 transition-colors"
-      >
-        <h3 class="font-semibold text-white">{article.title}</h3>
-        <p class="text-pi-light-blue text-sm mt-1">
-          {new Date(article.publishedAt).toLocaleDateString()}
-        </p>
-      </a>
-    {/each}
-  </div>
 </div>
