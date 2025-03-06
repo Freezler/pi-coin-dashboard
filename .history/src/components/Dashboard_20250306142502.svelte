@@ -99,7 +99,7 @@
       setInterval(async () => {
         await fetchPiPrice();
         updateChart();
-      }, 1000); // Update elke 10 seconden
+      }, 10000); // Update elke 10 seconden
     }
   });
 
