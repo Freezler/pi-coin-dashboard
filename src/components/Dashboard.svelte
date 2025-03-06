@@ -8,9 +8,6 @@
   export let currentTime;
   export let piPrice;
   export let change24h;
-  export let marketData;
-  export let newsItems;
-  export let transactions;
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -20,9 +17,9 @@
       <div>
         <h2 class="text-2xl font-bold">Pi/USD</h2>
         <div class="flex items-center mt-1">
-          <span class="text-3xl font-bold mr-2">${piPrice.toFixed(2)}</span>
+          <span class="text-3xl font-bold mr-2">${typeof piPrice === 'number' ? piPrice.toFixed(2) : piPrice}</span>
           <span class={change24h >= 0 ? "text-green-500" : "text-red-500"}>
-            {change24h >= 0 ? "+" : ""}{change24h.toFixed(2)}%
+            {change24h >= 0 ? "+" : ""}{typeof change24h === 'number' ? change24h.toFixed(2) : change24h}%
           </span>
         </div>
       </div>
@@ -35,7 +32,7 @@
     <PriceChart />
     
     <div class="mt-6">
-      <MarketStats {marketData} />
+      <MarketStats />
     </div>
   </div>
   
@@ -44,13 +41,13 @@
     <!-- News Section -->
     <div class="bg-pi-darker rounded-xl p-6 shadow-lg" id="news">
       <h2 class="text-xl font-bold mb-4">Latest News</h2>
-      <NewsCarousel {newsItems} />
+      <NewsCarousel />
     </div>
     
     <!-- Transactions Section -->
     <div class="bg-pi-darker rounded-xl p-6 shadow-lg" id="transactions">
       <h2 class="text-xl font-bold mb-4">Recent Transactions</h2>
-      <TransactionsTable {transactions} />
+      <TransactionsTable />
     </div>
   </div>
 </div>

@@ -2,18 +2,41 @@
   import { onMount } from 'svelte';
   import Navbar from './components/Navbar.svelte';
   import Dashboard from './components/Dashboard.svelte';
-  import { marketData, getPiPrice, getChange24h } from './data/marketData';
-  import { newsItems } from './data/newsData';
-  import { transactions } from './data/transactionData';
+  import { fetchCoinData } from './services/coinGeckoService.js';
   
-  let currentDate = "March 6, 2025";
-  let currentTime = "12:13 PM";
-  let piPrice = getPiPrice();
-  let change24h = getChange24h();
+  let currentDate = new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  let currentTime = new Date().toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  let piPrice = 0;
+  let change24h = 0;
+  let loading = true;
+  
+  // Update price and market data
+  async function updatePriceData() {
+    const data = await fetchCoinData();
+    if (data) {
+      piPrice = data.current_price;
+      change24h = data.price_change_percentage_24h;
+    }
+    loading = false;
+  }
   
   // Update time every minute
   onMount(() => {
-    const timer = setInterval(() => {
+    updatePriceData();
+    
+    // Update price every 60 seconds
+    const priceTimer = setInterval(updatePriceData, 60000);
+    
+    // Update time every minute
+    const timeTimer = setInterval(() => {
       const now = new Date();
       currentTime = now.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
@@ -23,23 +46,21 @@
     }, 60000);
     
     return () => {
-      clearInterval(timer);
+      clearInterval(timeTimer);
+      clearInterval(priceTimer);
     };
   });
 </script>
 
 <main class="min-h-screen bg-pi-dark text-white">
   <div class="grid-pattern">
-    <Navbar {piPrice} {change24h} />
+    <Navbar {piPrice} {change24h} {loading} />
     <div class="container mx-auto px-4 py-8">
       <Dashboard 
         {currentDate} 
         {currentTime}
         {piPrice}
         {change24h}
-        {marketData}
-        {newsItems}
-        {transactions}
       />
       
       <div class="mt-12 pt-6 border-t border-gray-800">
@@ -52,39 +73,38 @@
           <li>YouTube banners (2048x1152)</li>
           <li>Social media daily updates (1080x1080)</li>
         </ul>
-        <div class="flex flex-wrap gap-4">
-          <div class="bg-pi-darker p-4 rounded-lg">
-            <h3 class="text-pi-teal font-bold mb-2">Design Features</h3>
-            <ul class="list-disc pl-5">
-              <li>Gradient backgrounds</li>
-              <li>Tech-inspired grid patterns</li>
-              <li>Dynamic pricing data</li>
-              <li>Current date information</li>
-            </ul>
-          </div>
-          <div class="bg-pi-darker p-4 rounded-lg">
-            <h3 class="text-pi-red font-bold mb-2">Assets Preview</h3>
-            <div class="flex flex-col space-y-2">
-              <a href="/assets/thumbnail-preview.png" class="text-pi-teal hover:underline">View Thumbnail</a>
-              <a href="/assets/banner-preview.png" class="text-pi-teal hover:underline">View Banner</a>
-              <a href="/assets/daily-update-preview.png" class="text-pi-teal hover:underline">View Daily Update</a>
-            </div>
-          </div>
-        </div>
+        <p>
+          All assets feature modern design elements like gradient backgrounds, tech-inspired grid patterns, and real-time cryptocurrency market data.
+        </p>
       </div>
-    </div>
-    
-    <footer class="bg-pi-darker py-6 mt-12">
-      <div class="container mx-auto px-4 text-center text-gray-400">
-        <p> 2025 Pi Coin Dashboard. All rights reserved.</p>
+      
+      <footer class="mt-12 text-center text-gray-500 text-sm">
+        <p> 2025 Pi Coin Dashboard - Real-time data powered by CoinGecko API</p>
         <p class="mt-2 text-sm">Data provided for educational purposes only. Not financial advice.</p>
-      </div>
-    </footer>
+      </footer>
+    </div>
   </div>
 </main>
 
 <style>
-  :global(html) {
-    scroll-behavior: smooth;
+  .grid-pattern {
+    background-color: #121212;
+    background-image: 
+      linear-gradient(rgba(52, 211, 153, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(52, 211, 153, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-position: center center;
+  }
+  
+  :global(body) {
+    background-color: #121212;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  
+  :global(:root) {
+    --pi-dark: #121212;
+    --pi-darker: #0a0a0a;
+    --pi-teal: #4ECDC4;
   }
 </style>

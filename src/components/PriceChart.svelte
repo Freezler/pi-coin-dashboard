@@ -1,39 +1,47 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import Chart from 'chart.js/auto';
+  import { fetchHistoricalData } from '../services/coinGeckoService.js';
   
   let chartElement;
   let chart;
+  let timeframe = '7'; // Default to 7 days
+  let loading = true;
   
-  // Generate mock price data similar to typical cryptocurrency price movement
-  function generateMockPriceData() {
-    const prices = [];
-    const labels = [];
-    let price = 14.50; // Starting price
+  // Function to fetch and update chart data
+  async function updateChartData(days = 7) {
+    loading = true;
+    const priceData = await fetchHistoricalData(days);
     
-    for (let i = 0; i < 100; i++) {
-      // Add some volatility
-      const change = (Math.random() - 0.5) * 0.5;
-      price = Math.max(10, price + change);
-      prices.push(price);
-      
-      // Generate time labels (last 100 minutes)
-      const date = new Date();
-      date.setMinutes(date.getMinutes() - (100 - i));
-      const timeStr = date.toLocaleTimeString('en-US', { 
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      labels.push(timeStr);
+    if (!priceData || priceData.length === 0) {
+      loading = false;
+      return;
     }
     
-    return { prices, labels };
+    const prices = priceData.map(item => item.price);
+    const labels = priceData.map(item => {
+      const date = new Date(item.timestamp);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    });
+    
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = prices;
+      chart.update();
+    } else {
+      initChart(prices, labels);
+    }
+    
+    loading = false;
   }
   
-  onMount(() => {
-    const { prices, labels } = generateMockPriceData();
-    
+  // Initialize chart with data
+  function initChart(prices, labels) {
     const data = {
       labels: labels,
       datasets: [{
@@ -102,7 +110,7 @@
             ticks: {
               color: '#8a9caa',
               callback: function(value) {
-                return '$' + value;
+                return '$' + value.toFixed(2);
               }
             }
           }
@@ -111,21 +119,58 @@
     };
     
     chart = new Chart(chartElement, config);
-    
-    return () => {
+  }
+  
+  // Handle timeframe button clicks
+  function setTimeframe(days) {
+    timeframe = days;
+    updateChartData(days);
+  }
+  
+  onMount(() => {
+    updateChartData(timeframe);
+  });
+  
+  onDestroy(() => {
+    if (chart) {
       chart.destroy();
-    };
+    }
   });
 </script>
 
-<div class="w-full h-[400px]">
+<div class="w-full h-[400px] relative">
+  {#if loading}
+    <div class="absolute inset-0 flex items-center justify-center bg-pi-dark bg-opacity-70 z-10">
+      <div class="text-pi-teal">Loading chart data...</div>
+    </div>
+  {/if}
   <canvas bind:this={chartElement}></canvas>
 </div>
 
 <div class="flex justify-center space-x-4 mt-4">
-  <button class="bg-pi-darker border border-gray-700 hover:border-gray-500 px-4 py-2 rounded text-sm">1H</button>
-  <button class="bg-pi-darker border border-gray-700 hover:border-gray-500 px-4 py-2 rounded text-sm">4H</button>
-  <button class="bg-pi-teal border border-pi-teal px-4 py-2 rounded text-sm">1D</button>
-  <button class="bg-pi-darker border border-gray-700 hover:border-gray-500 px-4 py-2 rounded text-sm">1W</button>
-  <button class="bg-pi-darker border border-gray-700 hover:border-gray-500 px-4 py-2 rounded text-sm">1M</button>
+  <button 
+    class="bg-pi-darker border {timeframe === '1' ? 'border-pi-teal' : 'border-gray-700 hover:border-gray-500'} px-4 py-2 rounded text-sm"
+    on:click={() => setTimeframe('1')}>
+    1D
+  </button>
+  <button 
+    class="bg-pi-darker border {timeframe === '7' ? 'border-pi-teal' : 'border-gray-700 hover:border-gray-500'} px-4 py-2 rounded text-sm"
+    on:click={() => setTimeframe('7')}>
+    1W
+  </button>
+  <button 
+    class="bg-pi-darker border {timeframe === '30' ? 'border-pi-teal' : 'border-gray-700 hover:border-gray-500'} px-4 py-2 rounded text-sm"
+    on:click={() => setTimeframe('30')}>
+    1M
+  </button>
+  <button 
+    class="bg-pi-darker border {timeframe === '90' ? 'border-pi-teal' : 'border-gray-700 hover:border-gray-500'} px-4 py-2 rounded text-sm"
+    on:click={() => setTimeframe('90')}>
+    3M
+  </button>
+  <button 
+    class="bg-pi-darker border {timeframe === '365' ? 'border-pi-teal' : 'border-gray-700 hover:border-gray-500'} px-4 py-2 rounded text-sm"
+    on:click={() => setTimeframe('365')}>
+    1Y
+  </button>
 </div>
